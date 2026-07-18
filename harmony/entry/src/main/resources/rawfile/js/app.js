@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   let STAGE_W = 760, STAGE_H = 540; // 运行时按容器尺寸动态更新
+  // 平台判断：macOS（含 iOS）触摸板滚轮/捏合方向的 deltaY 与世界习惯相反，用于缩放反转
+  const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   // ---------- 状态 ----------
   let tool = 'select';
@@ -1558,7 +1560,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const _stageContainer = stage.container();
   _stageContainer.addEventListener('wheel', (e) => {
     e.preventDefault();
-    const dy = e.deltaY;
+    // macOS 触摸板（滚轮滑动 / 双指捏合）的 deltaY 方向与世界习惯相反，整体取反
+    const dy = IS_MAC ? -e.deltaY : e.deltaY;
     applyZoom(stage.scaleX() * (dy > 0 ? SCALE_STEP : 1 / SCALE_STEP), getContainerPointer(e));
   }, { passive: false });
 

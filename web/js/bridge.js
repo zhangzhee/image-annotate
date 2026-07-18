@@ -97,16 +97,20 @@
     if (!t || !t.dialog || !t.fs) return null; // 非 Tauri 环境：调用方走浏览器下载兜底
     try {
       let defaultPath = defaultName || 'annotated.png';
-      // 预填用户的「桌面」文件夹作为默认保存位置，而非只给纯文件名导致系统用上次目录
-      if (t.path && typeof t.path.desktopDir === 'function') {
+      // 默认保存位置：macOS 用「下载」目录（~/Downloads），Windows 用「桌面」，
+      // 确保原生保存对话框在 Mac 上默认落到 Mac 路径，而非 Home 或 Windows 风格路径。
+      const isMac = /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const dirFn = (isMac && typeof t.path.downloadDir === 'function') ? t.path.downloadDir
+                  : (typeof t.path.desktopDir === 'function' ? t.path.desktopDir : null);
+      if (dirFn) {
         try {
-          const desk = await t.path.desktopDir();
-          if (desk) {
+          const dir = await dirFn();
+          if (dir) {
             defaultPath = (t.path.join && typeof t.path.join === 'function')
-              ? await t.path.join(desk, defaultPath)
-              : (desk.replace(/[\\/]$/, '') + '\\' + defaultPath);
+              ? await t.path.join(dir, defaultPath)
+              : (dir.replace(/[\\/]$/, '') + (isMac ? '/' : '\\') + defaultPath);
           }
-        } catch (e) { /* 取不到桌面目录时退回纯文件名（系统会用上次目录） */ }
+        } catch (e) { /* 取不到目录时退回纯文件名（系统会用上次目录） */ }
       }
       const filePath = await t.dialog.save({
         defaultPath,
