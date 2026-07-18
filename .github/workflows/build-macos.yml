@@ -37,7 +37,7 @@ jobs:
       # 此步会从 icons/icon.png 生成全套图标，并自动把 icns 写进 tauri.conf.json 的 bundle.icon。
       - name: Generate macOS icons
         working-directory: desktop/src-tauri
-        run: npx --yes @tauri-apps/cli@latest icon icons/icon.png
+        run: npx --yes @tauri-apps/cli@2 icon icons/icon.png
 
       # 未签名构建（仅供自己测试）。对外发布需配 Apple 签名 + 公证，见下方注释。
       - name: Build (unsigned)
@@ -49,7 +49,7 @@ jobs:
           # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           # TAURI_SIGNING_IDENTITY: ${{ secrets.TAURI_SIGNING_IDENTITY }}
           CI: 'true'
-        run: npx --yes @tauri-apps/cli@latest build
+        run: npx --yes @tauri-apps/cli@2 build
 
       - name: Upload bundle
         uses: actions/upload-artifact@v4
