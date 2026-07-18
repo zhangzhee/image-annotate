@@ -1,0 +1,28 @@
+# Rust 编译产物
+/target
+desktop/src-tauri/target/
+
+# Node 依赖
+node_modules/
+
+# Tauri Windows WebView2 运行时（约 841MB，切勿提交！）
+desktop/src-tauri/webview2/
+
+# 本地构建日志
+desktop/src-tauri/build_*.log
+
+# 已出品的安装包（含 220MB 内置版，勿提交）
+desktop/release/
+
+# 系统 / 编辑器
+.DS_Store
+Thumbs.db
+*.log
+
+# Tauri 生成（保留 Cargo.lock 以保证可复现构建）
+
+# 助手工作目录（记忆/临时文件，非源码）
+.workbuddy/
+
+# 安装包残留的垃圾子目录（非源码）
+/图片标注/

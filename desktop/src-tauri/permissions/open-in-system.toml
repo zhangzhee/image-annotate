@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "open-in-system"
+description = "允许用系统文件管理器打开目录/文件（调用 open_in_system 命令）"
+commands.allow = ["open_in_system"]

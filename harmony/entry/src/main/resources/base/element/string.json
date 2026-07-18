@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "图片标注入口模块"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "图片标注主能力"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "图片标注"
+    }
+  ]
+}

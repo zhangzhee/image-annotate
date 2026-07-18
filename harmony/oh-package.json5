@@ -1,0 +1,9 @@
+{
+  "name": "imageannotate",
+  "version": "1.0.0",
+  "description": "图片标注鸿蒙版",
+  "dependencies": {},
+  "devDependencies": {
+    "@ohos/hypium": "1.0.6"
+  }
+}

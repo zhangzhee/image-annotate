@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>图片标注</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-mark" src="icon.png" width="28" height="28" alt="图片标注" />
+      <div class="brand-text">
+        <span class="brand-title">图片标注</span>
+        <span id="imgName" class="brand-sub">未选择图片</span>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button id="btnImportLocal" class="btn ghost">导入图片</button>
+      <input id="fileInput" type="file" accept="image/*" multiple style="display:none" />
+    </div>
+
+    <span class="top-spacer"></span>
+
+    <button id="btnTheme" class="btn ghost icon-btn" title="切换深色 / 浅色主题">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" fill="currentColor"/></svg>
+    </button>
+
+    <button id="btnHelp" class="btn ghost icon-btn" title="使用帮助 (?)">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.2 9.3a2.8 2.8 0 0 1 5.4 1c0 1.9-2.6 2.2-2.6 3.9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.1" fill="currentColor"/></svg>
+    </button>
+
+    <div class="search-box">
+      <svg class="search-ico" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <input id="searchInput" class="search" type="text" placeholder="搜索标注文字..." />
+    </div>
+
+    <div class="top-actions">
+      <button id="btnUndo" class="btn ghost icon-btn" title="撤销 (Ctrl/Cmd+Z)">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 7L4 12l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12h10a6 6 0 0 1 0 12h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="btnRedo" class="btn ghost icon-btn" title="重做 (Ctrl/Cmd+Y 或 Ctrl/Cmd+Shift+Z)">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M15 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12H10a6 6 0 0 0 0 12h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="divider"></span>
+      <button id="btnExport" class="btn primary">导出 PNG</button>
+      <button id="btnCopy" class="btn">复制</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <nav class="toolbar">
+      <button class="tool" data-tool="crop" title="裁剪画板 (C)">
+        <span class="tool-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M6 2v14a2 2 0 0 0 2 2h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 6h14a2 2 0 0 1 2 2v14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="tool-label">裁剪</span>
+      </button>
+      <button class="tool active" data-tool="select" title="选择/移动">
+        <span class="tool-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 3l14 6-6 2-2 6z" fill="currentColor"/></svg></span>
+        <span class="tool-label">选择</span>
+      </button>
+      <button class="tool" data-tool="rect" title="矩形框选 (R)">
+        <span class="tool-ico"><svg viewBox="0 0 24 24" width="20" height="20"><rect x="4" y="6" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
+        <span class="tool-label">矩形</span>
+      </button>
+      <button class="tool" data-tool="arrow" title="箭头 (A)">
+        <span class="tool-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 12h13m0 0l-5-5m5 5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="tool-label">箭头</span>
+      </button>
+      <button class="tool" data-tool="free" title="自由画笔 (B)">
+        <span class="tool-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 21l3.5-1L19 7.5 16.5 5 5 16.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M14 7l3 3" stroke="currentColor" stroke-width="2"/></svg></span>
+        <span class="tool-label">画笔</span>
+      </button>
+      <button class="tool" data-tool="text" title="文本 (T)">
+        <span class="tool-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 6h14M12 6v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <span class="tool-label">文本</span>
+      </button>
+      <button class="tool" data-tool="number" title="编号 (N)">
+        <span class="tool-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M8 5L5 19M16 5l-3 14M4 9h15M4 15h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+        <span class="tool-label">编号</span>
+      </button>
+      <button class="tool" data-tool="highlight" title="高亮 (H)">
+        <span class="tool-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 17l4-10h12l-4 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span>
+        <span class="tool-label">高亮</span>
+      </button>
+      <button class="tool" data-tool="mosaic" title="马赛克 (M)">
+        <span class="tool-ico"><svg viewBox="0 0 24 24" width="20" height="20"><g fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/></g></svg></span>
+        <span class="tool-label">马赛克</span>
+      </button>
+      <button class="tool" data-tool="watermark" title="水印 (W)">
+        <span class="tool-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 3C12 3 6 10 6 14a6 6 0 0 0 12 0c0-4-6-11-6-11z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span class="tool-label">水印</span>
+      </button>
+    </nav>
+
+    <section class="stage-wrap">
+      <div id="canvas"></div>
+      <div id="boardTip" class="board-tip"></div>
+      <div class="zoom-bar">
+        <button id="btnZoomOut" class="zbtn" title="缩小 (Ctrl+-)">−</button>
+        <button id="zoomLabel" class="zlabel" title="点击复位到 100%">100%</button>
+        <button id="btnZoomIn" class="zbtn" title="放大 (Ctrl++)">+</button>
+        <button id="btnZoomReset" class="zbtn wide" title="复位视图">复位</button>
+      </div>
+      <div class="canvas-hint">滚轮缩放 · 按住空格 / 中键拖拽平移</div>
+    </section>
+
+    <aside class="panel">
+      <div class="panel-section" id="styleCtl">
+        <div class="panel-title" id="styleTitle">样式</div>
+        <div class="row color-row" id="fgColorRow">
+          <label class="swatch-label">前景色</label>
+          <span class="presets" data-target="stroke">
+            <button type="button" class="preset" data-color="#ff4d4f" style="background:#ff4d4f" title="红"></button>
+            <button type="button" class="preset" data-color="#1677ff" style="background:#1677ff" title="蓝"></button>
+            <button type="button" class="preset" data-color="#52c41a" style="background:#52c41a" title="绿"></button>
+            <input type="color" class="picker" value="#ff4d4f" />
+          </span>
+        </div>
+        <div class="row color-row" id="bgColorRow">
+          <label class="swatch-label">背景色</label>
+          <span class="presets" data-target="bg">
+            <button type="button" class="preset" data-color="#ffe58f" style="background:#ffe58f" title="黄"></button>
+            <button type="button" class="preset" data-color="#ffd6e7" style="background:#ffd6e7" title="粉"></button>
+            <button type="button" class="preset" data-color="#b7eb8f" style="background:#b7eb8f" title="浅绿"></button>
+            <input type="color" class="picker" value="#ffe58f" />
+          </span>
+        </div>
+        <label class="row slider-row" id="bgOpacityRow">
+          <div class="header"><span class="slider-label">背景透明度</span><span id="bgOpacityVal" class="slider-val">100</span></div>
+          <input id="bgOpacity" type="range" min="0" max="100" value="100" />
+        </label>
+        <label class="row slider-row" id="radiusRow">
+          <div class="header"><span class="slider-label">圆角</span><span id="radiusVal" class="slider-val">20</span></div>
+          <input id="radius" type="range" min="0" max="100" value="20" />
+        </label>
+        <label class="row slider-row" id="swRow">
+          <div class="header"><span class="slider-label">线宽</span><span id="swVal" class="slider-val">1.5</span></div>
+          <input id="sw" type="range" min="0.5" max="12" step="0.5" value="3" />
+        </label>
+        <label class="row slider-row" id="fsRow">
+          <div class="header"><span class="slider-label">字号</span><span id="fsVal" class="slider-val">18</span></div>
+          <input id="fs" type="range" min="10" max="48" value="18" />
+        </label>
+      </div>
+
+      <div class="panel-section" id="imageInfo" style="display:none;">
+        <div class="panel-title">图片信息</div>
+        <div class="info-row"><span class="info-label">文件名</span><span class="info-val" id="iiName">—</span></div>
+        <div class="info-row"><span class="info-label">格式</span><span class="info-val" id="iiFormat">—</span></div>
+        <div class="info-row"><span class="info-label">长宽</span><span class="info-val" id="iiDim">—</span></div>
+        <div class="info-row"><span class="info-label">分辨率</span><span class="info-val" id="iiDpi">—</span></div>
+        <div class="info-row"><span class="info-label">文件大小</span><span class="info-val" id="iiSize">—</span></div>
+        <div class="info-row"><span class="info-label">标注数量</span><span class="info-val" id="iiCount">0</span></div>
+        <div class="info-row"><span class="info-label">画板尺寸</span><span class="info-val" id="iiBoard">—</span></div>
+      </div>
+
+      <div class="panel-section" id="mosaicCtl" style="display:none;">
+        <div class="panel-title">马赛克样式</div>
+        <div class="seg">
+          <label class="seg-item"><input type="radio" name="mosaicStyle" value="pixel" checked /><span>马赛克</span></label>
+          <label class="seg-item"><input type="radio" name="mosaicStyle" value="frost" /><span>磨砂玻璃</span></label>
+        </div>
+        <label class="row slider-row">
+          <div class="header"><span class="slider-label" id="mosaicParamLabel">马赛克大小</span><span id="mosaicParamVal" class="slider-val">12</span></div>
+          <input id="mosaicParam" type="range" min="4" max="60" value="12" />
+        </label>
+      </div>
+
+      <div class="panel-section" id="waterCtl" style="display:none;">
+        <div class="panel-title">水印设置</div>
+        <div class="seg" id="wmTypeSeg">
+          <label class="seg-item"><input type="radio" name="wmType" value="text" checked /><span>文字</span></label>
+          <label class="seg-item"><input type="radio" name="wmType" value="logo" /><span>Logo 图片</span></label>
+        </div>
+        <label class="row" id="wmTextRow">
+          <textarea id="wmText" class="text-input" rows="2" placeholder="水印文字（如 机密 / 公司名）"></textarea>
+        </label>
+        <div class="row" id="wmLogoRow" style="display:none;">
+          <div class="wm-logo">
+            <button id="wmLogoBtn" class="btn ghost sm" type="button">上传 Logo…</button>
+            <img id="wmLogoPreview" class="wm-logo-preview" alt="Logo 预览" style="display:none;" />
+            <input id="wmLogoInput" type="file" accept="image/*" style="display:none;" />
+          </div>
+        </div>
+        <div class="seg" id="wmLayoutSeg">
+          <label class="seg-item"><input type="radio" name="wmLayout" value="corner" /><span>单角</span></label>
+          <label class="seg-item"><input type="radio" name="wmLayout" value="center" /><span>居中</span></label>
+          <label class="seg-item"><input type="radio" name="wmLayout" value="tile" checked /><span>平铺</span></label>
+        </div>
+        <label class="row slider-row">
+          <div class="header"><span class="slider-label">透明度</span><span id="wmOpacityVal" class="slider-val">30</span></div>
+          <input id="wmOpacity" type="range" min="0" max="100" value="30" />
+        </label>
+        <label class="row slider-row">
+          <div class="header"><span class="slider-label">角度</span><span id="wmAngleVal" class="slider-val">30</span></div>
+          <input id="wmAngle" type="range" min="0" max="360" value="30" />
+        </label>
+        <label class="row slider-row" id="wmGapRow">
+          <div class="header"><span class="slider-label" id="wmGapLabel">间距</span><span id="wmGapVal" class="slider-val">80</span></div>
+          <input id="wmGap" type="range" min="0" max="300" value="80" />
+        </label>
+        <div class="hint">点击画布放置水印：平铺铺满整块画板，单角 / 居中可拖动微调；颜色与字号在上方「样式」区调整，水印会随导出一起输出。</div>
+      </div>
+
+      <div class="panel-section" id="boardCtl" style="display:none;">
+        <div class="panel-title">画板</div>
+        <div class="board-grid">
+          <label class="bf"><span>X</span><input id="boardX" type="number" value="0" /></label>
+          <label class="bf"><span>Y</span><input id="boardY" type="number" value="0" /></label>
+          <label class="bf"><span>宽</span><input id="boardW" type="number" min="1" value="0" /></label>
+          <label class="bf"><span>高</span><input id="boardH" type="number" min="1" value="0" /></label>
+        </div>
+        <div class="seg">
+          <label class="seg-item"><input type="radio" name="boardMode" value="transparent" checked /><span>透明</span></label>
+          <label class="seg-item"><input type="radio" name="boardMode" value="color" /><span>颜色</span></label>
+        </div>
+        <div class="row color-row" id="boardColorRow" style="display:none;">
+          <label class="swatch-label">颜色</label>
+          <input id="boardColor" type="color" value="#ffffff" />
+        </div>
+        <div class="row btn-row">
+          <button id="btnApplyCrop" class="btn primary sm">应用裁剪</button>
+          <button id="btnClearCrop" class="btn ghost sm">清除</button>
+        </div>
+        <div class="hint" id="boardHint">在画布上拖拽框选裁剪区域，或手动输入画板尺寸（可超出原图范围）。</div>
+      </div>
+
+      <div class="panel-section" id="editor" style="display:none;">
+        <div class="panel-title">选中标注</div>
+        <label class="row">
+          <textarea id="edText" class="text-input" rows="3" placeholder="标注说明（回车换行）"></textarea>
+        </label>
+        <div class="row btn-row">
+          <button id="edLock" class="btn ghost sm">锁定</button>
+          <button id="edVis" class="btn ghost sm">隐藏</button>
+          <button id="edDelete" class="btn danger sm">删除</button>
+        </div>
+      </div>
+
+      <div class="panel-section grow">
+        <div class="panel-title">标注列表 <span class="count" id="annCount">0</span></div>
+        <div id="annList" class="ann-list"></div>
+      </div>
+    </aside>
+  </div>
+
+  <div id="textModal" class="modal" style="display:none;">
+    <div class="modal-box">
+      <div class="modal-title" id="textModalTitle">输入标注文字</div>
+      <textarea id="textModalInput" class="modal-input" rows="3" placeholder="输入文字…（回车换行，Ctrl+Enter 确定）"></textarea>
+      <div class="modal-actions">
+        <button id="textModalCancel" class="btn ghost sm">取消</button>
+        <button id="textModalOk" class="btn primary sm">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="infoModal" class="modal" style="display:none;">
+    <div class="modal-box wide">
+      <div class="modal-title" id="infoModalTitle">信息</div>
+      <pre id="infoModalBody" class="modal-pre"></pre>
+      <div class="modal-actions">
+        <button id="infoModalCopy" class="btn ghost sm">复制</button>
+        <button id="infoModalClose" class="btn primary sm">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="okModal" class="modal" style="display:none;">
+    <div class="modal-box">
+      <div class="modal-title" id="okModalTitle">提示</div>
+      <div id="okModalBody" class="modal-body-text"></div>
+      <div class="modal-actions">
+        <button id="okModalFolder" class="btn ghost sm" style="display:none">打开文件夹</button>
+        <button id="okModalBtn" class="btn primary sm">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="helpModal" class="modal" style="display:none;">
+    <div class="modal-box wide help-box">
+      <div class="modal-title">图片标注 · 使用帮助</div>
+      <div class="help-scroll">
+        <section class="help-sec">
+          <h3>快速开始</h3>
+          <ul>
+            <li>点工具栏「导入图片」选择本地文件，即可开始标注。</li>
+            <li>从左侧工具栏选一种标注工具，在图上拖拽绘制；用「选择」工具可点选、移动、修改样式。</li>
+            <li>标注完成后点「导出 PNG」把带标注的图下载到本地（可先选分辨率与文件夹）；「复制」复制到剪贴板。</li>
+          </ul>
+        </section>
+        <section class="help-sec">
+          <h3>工具（左侧栏）</h3>
+          <ul>
+            <li><b>选择</b>：点选 / 移动 / 编辑已有标注。</li>
+            <li><b>裁剪</b>：框选需要保留的画面区域。</li>
+            <li><b>框选 / 箭头 / 画笔 / 高亮 / 文本 / 编号 / 马赛克</b>：在图上绘制对应标注。</li>
+            <li><b>水印</b>：文字或 Logo 水印，支持平铺 / 居中 / 单角、角度与透明度，随导出一起输出。</li>
+          </ul>
+        </section>
+        <section class="help-sec">
+          <h3>快捷键</h3>
+          <div class="kbd-grid">
+            <div class="kbd-row"><span class="kbd">V</span><span>选择工具</span></div>
+            <div class="kbd-row"><span class="kbd">C</span><span>裁剪工具</span></div>
+            <div class="kbd-row"><span class="kbd">R</span><span>框选工具</span></div>
+            <div class="kbd-row"><span class="kbd">A</span><span>箭头工具</span></div>
+            <div class="kbd-row"><span class="kbd">B</span><span>画笔工具</span></div>
+            <div class="kbd-row"><span class="kbd">T</span><span>文本工具</span></div>
+            <div class="kbd-row"><span class="kbd">N</span><span>编号工具</span></div>
+            <div class="kbd-row"><span class="kbd">H</span><span>高亮工具</span></div>
+            <div class="kbd-row"><span class="kbd">M</span><span>马赛克工具</span></div>
+            <div class="kbd-row"><span class="kbd">W</span><span>水印工具</span></div>
+            <div class="kbd-row"><span class="kbd">Ctrl/Cmd + Z</span><span>撤销</span></div>
+            <div class="kbd-row"><span class="kbd">Ctrl/Cmd + Y</span><span>重做（或 Ctrl/Cmd + Shift + Z）</span></div>
+            <div class="kbd-row"><span class="kbd">Ctrl/Cmd + C</span><span>复制选中标注</span></div>
+            <div class="kbd-row"><span class="kbd">Ctrl/Cmd + V</span><span>粘贴（生成副本，序号递增）</span></div>
+            <div class="kbd-row"><span class="kbd">Delete / Backspace</span><span>删除选中标注</span></div>
+            <div class="kbd-row"><span class="kbd">Ctrl/Cmd + =</span><span>放大画布</span></div>
+            <div class="kbd-row"><span class="kbd">Ctrl/Cmd + -</span><span>缩小画布</span></div>
+            <div class="kbd-row"><span class="kbd">Ctrl/Cmd + 0</span><span>重置缩放</span></div>
+            <div class="kbd-row"><span class="kbd">空格 + 拖拽</span><span>平移画布</span></div>
+            <div class="kbd-row"><span class="kbd">滚轮</span><span>缩放画布</span></div>
+          </div>
+        </section>
+        <section class="help-sec">
+          <h3>标注列表</h3>
+          <ul>
+            <li>右侧列表展示所有标注，点击可选中并在上方编辑样式。</li>
+            <li>每行「隐 / 锁 / 删」可分别切换显示、锁定、删除。</li>
+            <li>顶部搜索框可过滤标注文字 / 名称 / 类型。</li>
+          </ul>
+        </section>
+        <section class="help-sec">
+          <h3>小提示</h3>
+          <ul>
+            <li>选择工具下，右侧面板会显示图片信息（长宽 / 分辨率 / 文件大小 / 标注数量等）。</li>
+            <li>在画布中按 <span class="kbd">Ctrl/⌘ + V</span> 可把系统剪贴板里的图片直接粘贴进来，作为可移动 / 缩放 / 删除的叠加图层。</li>
+            <li>遇到异常时，界面会显示错误提示，可在浏览器控制台查看详细信息。</li>
+            <li>标注自动存在本地草稿（localStorage），下次打开同一图片可继续编辑。</li>
+          </ul>
+        </section>
+      </div>
+      <section class="help-sec help-version">
+        <h3>版本号</h3>
+        <div class="help-version-val">图片标注 v0.9beta</div>
+        <div class="help-clear-cache">
+          <button id="btnClearCache" class="btn ghost sm" title="清除本地保存的标注草稿">清除缓存</button>
+          <span class="hint">清除本地保存的标注草稿（含当前画布），不可撤销。</span>
+        </div>
+      </section>
+      <div class="modal-actions">
+        <button id="helpModalClose" class="btn primary sm">我知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="resModal" class="modal" style="display:none;">
+    <div class="modal-box res-box">
+      <div class="modal-title">导出 PNG · 分辨率设置</div>
+      <p class="res-hint">1× = 原图分辨率（不放大不压缩）。倍率越高，导出像素越多。</p>
+      <div class="res-presets" id="resPresets">
+        <button class="res-chip" data-scale="0.5">0.5×</button>
+        <button class="res-chip" data-scale="1">1× 原始</button>
+        <button class="res-chip" data-scale="1.5">1.5×</button>
+        <button class="res-chip" data-scale="2">2×</button>
+        <button class="res-chip" data-scale="3">3×</button>
+        <button class="res-chip" data-scale="4">4×</button>
+      </div>
+      <div class="res-custom">
+        <label class="res-label">自定义宽度（像素）</label>
+        <div class="res-custom-row">
+          <input id="resWidthInput" class="modal-input" type="number" min="1" step="1" placeholder="如 3840" />
+          <button id="resWidthApply" class="btn ghost sm">应用</button>
+        </div>
+      </div>
+      <div class="res-folder">
+        <label class="res-label">目标文件夹</label>
+        <div class="res-folder-row">
+          <input id="resDirInput" class="modal-input" type="text" placeholder="如 C:\Users\Name\Downloads" spellcheck="false" />
+          <button id="resDirBrowse" class="btn ghost sm">浏览…</button>
+        </div>
+      </div>
+      <div class="res-preview" id="resPreview">输出尺寸：—</div>
+      <div class="modal-actions">
+        <button id="resCancel" class="btn ghost sm">取消</button>
+        <button id="resOk" class="btn primary sm">导出 PNG</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="exportOverlay" class="export-overlay" style="display:none">
+    <div class="export-card">
+      <div class="export-spinner" aria-hidden="true"></div>
+      <div class="export-title">正在导出…</div>
+      <div class="export-sub" id="exportSub">正在生成图片，请稍候</div>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+  <div id="fatal" class="fatal" style="display:none"></div>
+  <script src="js/lib/konva.min.js"></script>
+  <script src="js/bridge.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+name: Build macOS
+
+# 触发：手动点 Run workflow，或推送到 main/master（仅当相关文件变动时）
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths:
+      - 'web/**'
+      - 'desktop/**'
+      - '.github/workflows/build-macos.yml'
+
+jobs:
+  macos:
+    runs-on: macos-latest   # GitHub 的 macOS runner 现为 Apple Silicon (aarch64)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # 默认 Apple Silicon。需要 Intel 支持时，把下行改成：
+          # targets: aarch64-apple-darwin,x86_64-apple-darwin
+          targets: aarch64-apple-darwin
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: 'desktop/src-tauri -> target'
+
+      # 生成 macOS 必需的 .icns 图标（Tauri 的 macOS 打包要求 icns 格式）。
+      # 此步会从 icons/icon.png 生成全套图标，并自动把 icns 写进 tauri.conf.json 的 bundle.icon。
+      - name: Generate macOS icons
+        working-directory: desktop/src-tauri
+        run: npx --yes @tauri-apps/cli@latest icon icons/icon.png
+
+      # 未签名构建（仅供自己测试）。对外发布需配 Apple 签名 + 公证，见下方注释。
+      - name: Build (unsigned)
+        working-directory: desktop/src-tauri
+        env:
+          # —— 对外发布时启用签名/公证（需先到 GitHub Secrets 配置）——
+          # APPLE_ID: ${{ secrets.APPLE_ID }}
+          # APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # TAURI_SIGNING_IDENTITY: ${{ secrets.TAURI_SIGNING_IDENTITY }}
+          CI: 'true'
+        run: npx --yes @tauri-apps/cli@latest build
+
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-annotate-macos
+          path: |
+            desktop/src-tauri/target/release/bundle/macos/*.app
+            desktop/src-tauri/target/release/bundle/dmg/*.dmg
+          if-no-files-found: error
